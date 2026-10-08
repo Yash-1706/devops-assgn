@@ -50,7 +50,8 @@ spec:
           command:
             - sh
             - -c
-            - until pg_isready -h {{ include "stockpilot.fullname" . }}-postgres -p 5432; do echo "waiting for postgres"; sleep 2; done
+            # -U is required: uid 10001 has no passwd entry here, and without a user pg_isready gives up
+            - until pg_isready -h {{ include "stockpilot.fullname" . }}-postgres -p 5432 -U {{ .Values.postgres.user }}; do echo "waiting for postgres"; sleep 2; done
           resources:
             requests:
               cpu: 10m
