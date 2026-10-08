@@ -15,7 +15,12 @@ ENV VITE_COMMIT_SHA=$COMMIT_SHA
 RUN npm run build
 
 # ---- stage 2: serve the static files with Nginx (runs as non-root uid 101) ----
-FROM nginxinc/nginx-unprivileged:1.28-alpine
+FROM nginxinc/nginx-unprivileged:1.30-alpine
+
+# pick up OS security fixes published after the base image was built (keeps Trivy green)
+USER root
+RUN apk upgrade --no-cache
+USER 101
 
 # filled into the nginx template at container start; override per environment
 ENV BACKEND_URL=http://backend:8000 \
