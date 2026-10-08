@@ -15,6 +15,11 @@ COPY alembic.ini .
 COPY alembic ./alembic
 COPY app ./app
 
+# which commit this image was built from (CI passes the real SHA)
+ARG COMMIT_SHA=local
+LABEL org.opencontainers.image.title="stockpilot-backend" \
+      org.opencontainers.image.revision=$COMMIT_SHA
+
 # numeric uid so Kubernetes can verify runAsNonRoot
 RUN useradd --create-home --uid 10001 appuser && chown -R appuser /app
 USER 10001

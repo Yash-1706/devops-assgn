@@ -26,6 +26,10 @@ USER 101
 ENV BACKEND_URL=http://backend:8000 \
     NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1
 
+ARG COMMIT_SHA=local
+LABEL org.opencontainers.image.title="stockpilot-frontend" \
+      org.opencontainers.image.revision=$COMMIT_SHA
+
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
