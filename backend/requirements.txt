@@ -1,4 +1,6 @@
-fastapi==0.143.0
+# fastapi is pinned below 0.139: prometheus-fastapi-instrumentator 7.1.0
+# crashes on the newer router internals (AttributeError on '_IncludedRouter').
+fastapi==0.136.3
 uvicorn[standard]==0.54.0
 sqlalchemy==2.0.54
 alembic==1.20.0
