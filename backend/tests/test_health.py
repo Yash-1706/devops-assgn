@@ -7,7 +7,7 @@ from app.main import app
 def test_root_returns_service_info(client):
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json()["service"] == "taskboard-backend"
+    assert response.json()["service"] == "stockpilot-backend"
 
 
 def test_health_is_ok(client):
@@ -37,8 +37,15 @@ def test_ready_returns_503_when_database_is_down(client):
 
 
 def test_metrics_exposes_prometheus_format(client):
-    client.get("/api/tasks")  # generate at least one instrumented request
+    client.get("/api/items")  # generate at least one instrumented request
     response = client.get("/metrics")
     assert response.status_code == 200
     assert "http_requests_total" in response.text
     assert "http_request_duration_seconds" in response.text
+    assert 'handler="/api/items"' in response.text
+
+
+def test_probe_endpoints_are_not_counted_in_metrics(client):
+    client.get("/health")
+    client.get("/ready")
+    assert 'handler="/health"' not in client.get("/metrics").text

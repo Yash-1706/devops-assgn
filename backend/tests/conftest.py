@@ -4,6 +4,8 @@ import os
 # before app.database builds its engine.
 os.environ["DATABASE_URL"] = "sqlite://"
 
+import itertools
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -41,11 +43,21 @@ def client():
 
 
 @pytest.fixture()
-def make_task(client):
+def make_item(client):
+    """Create an item through the API; every call gets a fresh SKU unless one is given."""
+    counter = itertools.count(1)
+
     def _make(**overrides):
-        payload = {"title": "Write docs", "priority": "medium", "status": "todo"}
+        payload = {
+            "sku": f"SKU-{next(counter):03d}",
+            "name": "Widget",
+            "category": "General",
+            "quantity": 50,
+            "reorder_level": 10,
+            "unit_price": 2.5,
+        }
         payload.update(overrides)
-        response = client.post("/api/tasks", json=payload)
+        response = client.post("/api/items", json=payload)
         assert response.status_code == 201, response.text
         return response.json()
 
