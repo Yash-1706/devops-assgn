@@ -5,9 +5,9 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-taskboard}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-taskboard}
-      POSTGRES_DB: ${POSTGRES_DB:-taskboard}
+      POSTGRES_USER: ${POSTGRES_USER:-stockpilot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stockpilot}
+      POSTGRES_DB: ${POSTGRES_DB:-stockpilot}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -20,7 +20,7 @@ services:
   backend:
     build: ./backend
     environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-taskboard}:${POSTGRES_PASSWORD:-taskboard}@db:5432/${POSTGRES_DB:-taskboard}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-stockpilot}:${POSTGRES_PASSWORD:-stockpilot}@db:5432/${POSTGRES_DB:-stockpilot}
     ports:
       - "8000:8000"
     depends_on:
