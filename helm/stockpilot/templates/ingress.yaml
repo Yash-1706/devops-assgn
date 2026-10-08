@@ -18,14 +18,16 @@ spec:
   rules:
     - http:
         paths:
-          # /api -> FastAPI backend (more specific, listed first)
-          - path: /api
+          # /api (and the Swagger UI at /docs) -> FastAPI backend
+          {{- range $path := list "/api" "/docs" "/openapi.json" }}
+          - path: {{ $path }}
             pathType: Prefix
             backend:
               service:
-                name: {{ include "stockpilot.fullname" . }}-backend
+                name: {{ include "stockpilot.fullname" $ }}-backend
                 port:
                   name: http
+          {{- end }}
           # everything else -> React frontend
           - path: /
             pathType: Prefix
