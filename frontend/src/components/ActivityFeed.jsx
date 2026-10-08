@@ -1,31 +1,26 @@
-import { timeAgo } from "../utils.js";
+import { formatNumber, timeAgo } from "../utils.js";
 
-function describe(task) {
-  if (task.status === "done") return "completed";
-  const edited = new Date(task.updated_at) - new Date(task.created_at) > 1000;
-  return edited ? "updated" : "created";
-}
-
-export default function ActivityFeed({ tasks }) {
-  const recent = [...tasks]
-    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
-    .slice(0, 6);
-
+export default function ActivityFeed({ movements }) {
   return (
     <section className="panel" aria-labelledby="activity-heading">
-      <h2 id="activity-heading">Recent activity</h2>
-      {recent.length === 0 ? (
-        <p className="muted">Nothing has happened yet.</p>
+      <h2 id="activity-heading">Stock movements</h2>
+      {movements.length === 0 ? (
+        <p className="muted">No stock has moved yet.</p>
       ) : (
         <ul className="activity-list">
-          {recent.map((task) => (
-            <li key={task.id}>
-              <span className={`activity-dot dot-${task.status}`} aria-hidden="true" />
+          {movements.map((movement) => (
+            <li key={movement.id}>
+              <span className={movement.delta > 0 ? "delta delta-in" : "delta delta-out"}>
+                {movement.delta > 0 ? "+" : "−"}
+                {formatNumber(Math.abs(movement.delta))}
+              </span>
               <div>
                 <p>
-                  <strong>{task.assignee || "Someone"}</strong> {describe(task)} “{task.title}”
+                  <strong>{movement.item_name}</strong>
                 </p>
-                <span className="muted">{timeAgo(task.updated_at)}</span>
+                <span className="muted">
+                  {movement.reason || "Adjustment"} · {timeAgo(movement.created_at)}
+                </span>
               </div>
             </li>
           ))}

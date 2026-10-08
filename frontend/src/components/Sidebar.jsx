@@ -1,8 +1,8 @@
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: "▦" },
-  { id: "tasks", label: "My tasks", icon: "✓" },
-  { id: "projects", label: "Projects", icon: "❖" },
-  { id: "reports", label: "Reports", icon: "▤" },
+  { id: "inventory", label: "Inventory", icon: "▤" },
+  { id: "suppliers", label: "Suppliers", icon: "❖" },
+  { id: "reports", label: "Reports", icon: "↗" },
   { id: "settings", label: "Settings", icon: "⚙" },
 ];
 
@@ -10,13 +10,13 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="brand">
-        <span className="brand-mark">✓</span>
-        <span className="brand-name">TaskBoard</span>
+        <span className="brand-mark">▣</span>
+        <span className="brand-name">StockPilot</span>
       </div>
 
       <div className="workspace">
-        <span className="workspace-label">Workspace</span>
-        <strong>Platform Team</strong>
+        <span className="workspace-label">Warehouse</span>
+        <strong>Main distribution centre</strong>
       </div>
 
       <nav aria-label="Main">
