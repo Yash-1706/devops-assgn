@@ -119,7 +119,7 @@ data:
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "sum(rate(http_requests_total{namespace=~\"$namespace\", job=\"stockpilot-backend\", status=\"5xx\"}[5m])) / sum(rate(http_requests_total{namespace=~\"$namespace\", job=\"stockpilot-backend\"}[5m]))",
+              "expr": "(sum(rate(http_requests_total{namespace=~\"$namespace\", job=\"stockpilot-backend\", status=\"5xx\"}[5m])) or vector(0)) / sum(rate(http_requests_total{namespace=~\"$namespace\", job=\"stockpilot-backend\"}[5m]))",
               "legendFormat": "",
               "refId": "A"
             }
