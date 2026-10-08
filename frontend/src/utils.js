@@ -1,14 +1,20 @@
-export const STATUS_LABELS = {
-  todo: "To do",
-  in_progress: "In progress",
-  done: "Done",
+export const STOCK_LABELS = {
+  in_stock: "In stock",
+  low_stock: "Low stock",
+  out_of_stock: "Out of stock",
 };
 
-export const PRIORITY_LABELS = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-};
+const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+const compactMoney = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+export const formatMoney = (value) => money.format(value);
+export const formatCompactMoney = (value) => compactMoney.format(value);
+export const formatNumber = (value) => new Intl.NumberFormat("en-US").format(value);
 
 export function timeAgo(isoString) {
   const seconds = Math.max(0, Math.round((Date.now() - new Date(isoString).getTime()) / 1000));
@@ -20,12 +26,8 @@ export function timeAgo(isoString) {
   return `${Math.round(hours / 24)}d ago`;
 }
 
-export function initials(name) {
-  if (!name) return "?";
-  return name
-    .split(/\s+/)
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+// Width of the stock bar: full at three times the reorder level.
+export function stockPercent(item) {
+  const full = Math.max(item.reorder_level * 3, 1);
+  return Math.min(100, Math.round((item.quantity / full) * 100));
 }

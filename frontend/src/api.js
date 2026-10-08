@@ -1,12 +1,17 @@
 // All calls use relative URLs: Vite (dev), Nginx (container) or the Ingress (Kubernetes)
 // forwards /api to the backend, so the browser never needs the backend hostname.
-const TASKS_URL = "/api/tasks";
+const ITEMS_URL = "/api/items";
 
 async function request(url, options = {}) {
-  const response = await fetch(url, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
+  let response;
+  try {
+    response = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      ...options,
+    });
+  } catch {
+    throw new Error("The server did not respond. Check that the backend is running.");
+  }
 
   if (!response.ok) {
     let detail = `Request failed (${response.status})`;
@@ -23,10 +28,12 @@ async function request(url, options = {}) {
   return response.status === 204 ? null : response.json();
 }
 
-export const getTasks = () => request(TASKS_URL);
-export const getStats = () => request(`${TASKS_URL}/stats`);
-export const createTask = (task) =>
-  request(TASKS_URL, { method: "POST", body: JSON.stringify(task) });
-export const updateTask = (id, changes) =>
-  request(`${TASKS_URL}/${id}`, { method: "PUT", body: JSON.stringify(changes) });
-export const deleteTask = (id) => request(`${TASKS_URL}/${id}`, { method: "DELETE" });
+export const getItems = () => request(ITEMS_URL);
+export const getStats = () => request(`${ITEMS_URL}/stats`);
+export const getMovements = (limit = 8) => request(`/api/movements?limit=${limit}`);
+export const createItem = (item) => request(ITEMS_URL, { method: "POST", body: JSON.stringify(item) });
+export const updateItem = (id, changes) =>
+  request(`${ITEMS_URL}/${id}`, { method: "PUT", body: JSON.stringify(changes) });
+export const adjustStock = (id, delta, reason) =>
+  request(`${ITEMS_URL}/${id}/adjust`, { method: "POST", body: JSON.stringify({ delta, reason }) });
+export const deleteItem = (id) => request(`${ITEMS_URL}/${id}`, { method: "DELETE" });
