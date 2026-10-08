@@ -1,19 +1,20 @@
 :root {
-  --bg: #f4f6fb;
+  --bg: #f3f5f9;
   --surface: #ffffff;
-  --border: #e3e7ef;
-  --text: #1b2333;
-  --muted: #6b7690;
-  --accent: #4f46e5;
-  --accent-dark: #4338ca;
-  --sidebar: #0f172a;
-  --sidebar-text: #aab4cc;
+  --border: #e2e6ee;
+  --text: #1a2233;
+  --muted: #667089;
+  --accent: #0d9488;
+  --accent-dark: #0f766e;
+  --accent-soft: #ccfbf1;
+  --sidebar: #0b1b2b;
+  --sidebar-text: #a9b8cb;
   --danger: #dc2626;
   --warning: #d97706;
   --success: #16a34a;
   --info: #2563eb;
   --radius: 12px;
-  --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 14px rgba(15, 23, 42, 0.04);
+  --shadow: 0 1px 2px rgba(11, 27, 43, 0.06), 0 4px 14px rgba(11, 27, 43, 0.04);
 }
 
 * {
@@ -43,6 +44,11 @@ h2 {
   font-size: 1.05rem;
 }
 
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+}
+
 button,
 input,
 select,
@@ -60,7 +66,7 @@ textarea {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 240px minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -79,7 +85,7 @@ textarea {
 
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: 20px;
   align-items: start;
 }
@@ -181,7 +187,7 @@ textarea {
 .build-tag {
   font-size: 0.78rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  color: #7c88a6;
+  color: #7f91a8;
 }
 
 /* ---------- buttons ---------- */
@@ -212,12 +218,30 @@ textarea {
   background: var(--bg);
 }
 
-.button:disabled {
-  opacity: 0.55;
+.button:disabled,
+.mini-button:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
+.mini-button {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mini-button:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
 .button:focus-visible,
+.mini-button:focus-visible,
 .icon-button:focus-visible,
 .filter:focus-visible,
 .nav-link:focus-visible,
@@ -259,7 +283,7 @@ textarea:focus-visible {
   border-radius: var(--radius);
   padding: 16px 18px;
   display: grid;
-  gap: 4px;
+  gap: 2px;
   box-shadow: var(--shadow);
 }
 
@@ -283,7 +307,12 @@ textarea:focus-visible {
 
 .kpi-value {
   font-size: 1.9rem;
-  line-height: 1.1;
+  line-height: 1.15;
+}
+
+.kpi-hint {
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 /* ---------- panels ---------- */
@@ -301,12 +330,7 @@ textarea:focus-visible {
 }
 
 .panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .table-panel {
@@ -315,10 +339,38 @@ textarea:focus-visible {
 
 /* ---------- filters ---------- */
 
+.filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
 .filter-bar {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.filter-inputs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.search-input,
+.select-input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 11px;
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+
+.search-input {
+  width: 190px;
 }
 
 .filter {
@@ -354,14 +406,14 @@ textarea:focus-visible {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* ---------- task table ---------- */
+/* ---------- item table ---------- */
 
-.task-table {
+.item-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.task-table th {
+.item-table th {
   text-align: left;
   font-size: 0.78rem;
   text-transform: uppercase;
@@ -371,13 +423,13 @@ textarea:focus-visible {
   border-bottom: 1px solid var(--border);
 }
 
-.task-table td {
+.item-table td {
   padding: 12px 10px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
 
-.task-table tr:last-child td {
+.item-table tr:last-child td {
   border-bottom: none;
 }
 
@@ -385,46 +437,54 @@ textarea:focus-visible {
   opacity: 0.55;
 }
 
-.task-title {
+.item-name {
   display: block;
   font-weight: 600;
 }
 
-.task-desc {
+.item-meta {
   display: block;
   color: var(--muted);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   margin-top: 2px;
-  max-width: 280px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.actions-cell {
-  width: 40px;
-  text-align: right;
+.stock-cell {
+  display: grid;
+  gap: 4px;
+  min-width: 110px;
 }
 
-.status-select {
-  border: 1px solid var(--border);
+.stock-qty {
+  font-weight: 700;
+}
+
+.stock-bar {
+  display: block;
+  height: 6px;
   border-radius: 999px;
-  padding: 4px 10px;
-  background: var(--surface);
-  font-size: 0.86rem;
-  cursor: pointer;
+  background: #e8ecf3;
+  overflow: hidden;
 }
 
-.status-todo {
-  background: #f1f5f9;
+.stock-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
 }
-.status-in_progress {
-  background: #dbeafe;
-  border-color: #bfdbfe;
+
+.fill-in_stock {
+  background: var(--success);
 }
-.status-done {
-  background: #dcfce7;
-  border-color: #bbf7d0;
+.fill-low_stock {
+  background: var(--warning);
+}
+.fill-out_of_stock {
+  background: var(--danger);
+}
+
+.stock-reorder {
+  font-size: 0.76rem;
 }
 
 .badge {
@@ -433,37 +493,29 @@ textarea:focus-visible {
   padding: 2px 9px;
   font-size: 0.8rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-.badge-high {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-.badge-medium {
-  background: #fef3c7;
-  color: #b45309;
-}
-.badge-low {
+.badge-in_stock {
   background: #dcfce7;
   color: #15803d;
 }
-
-.assignee {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.badge-low_stock {
+  background: #fef3c7;
+  color: #b45309;
+}
+.badge-out_of_stock {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
-.avatar {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #e0e7ff;
-  color: var(--accent-dark);
-  font-size: 0.72rem;
-  font-weight: 700;
+.actions-cell {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.actions-cell > * + * {
+  margin-left: 4px;
 }
 
 .empty-state {
@@ -478,8 +530,9 @@ textarea:focus-visible {
   margin-bottom: 4px;
 }
 
-/* ---------- activity + pipeline ---------- */
+/* ---------- side panels ---------- */
 
+.reorder-list,
 .activity-list {
   list-style: none;
   margin: 0;
@@ -488,29 +541,49 @@ textarea:focus-visible {
   gap: 14px;
 }
 
+.reorder-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.reorder-list li > div {
+  display: grid;
+  min-width: 0;
+}
+
+.reorder-list .muted {
+  font-size: 0.82rem;
+}
+
 .activity-list li {
   display: flex;
+  align-items: center;
   gap: 12px;
-}
-
-.activity-dot {
-  flex: none;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-top: 6px;
-  background: var(--muted);
-}
-
-.dot-in_progress {
-  background: var(--info);
-}
-.dot-done {
-  background: var(--success);
 }
 
 .activity-list p {
   font-size: 0.92rem;
+}
+
+.delta {
+  flex: none;
+  min-width: 52px;
+  text-align: center;
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.delta-in {
+  background: #dcfce7;
+  color: #15803d;
+}
+.delta-out {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .pipeline {
@@ -537,8 +610,8 @@ textarea:focus-visible {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #dcfce7;
-  color: var(--success);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
   font-weight: 700;
   font-size: 0.85rem;
 }
@@ -603,7 +676,7 @@ textarea:focus-visible {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(11, 27, 43, 0.5);
   display: grid;
   place-items: center;
   padding: 16px;
@@ -614,12 +687,12 @@ textarea:focus-visible {
   background: var(--surface);
   border-radius: 14px;
   padding: 24px;
-  width: min(480px, 100%);
+  width: min(520px, 100%);
   max-height: 100%;
   overflow: auto;
   display: grid;
   gap: 14px;
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.3);
+  box-shadow: 0 20px 50px rgba(11, 27, 43, 0.3);
 }
 
 .modal label {
@@ -637,6 +710,7 @@ textarea:focus-visible {
   padding: 9px 11px;
   background: var(--surface);
   font-weight: 400;
+  min-width: 0;
 }
 
 .modal textarea {
@@ -663,17 +737,20 @@ textarea:focus-visible {
 
 /* ---------- responsive ---------- */
 
-@media (max-width: 1400px) {
+@media (max-width: 1600px) {
   .content-grid {
     grid-template-columns: minmax(0, 1fr);
   }
   .side-column {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 1100px) {
   .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .side-column {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -719,53 +796,60 @@ textarea:focus-visible {
 }
 
 /* table rows become stacked cards once the full table no longer fits */
-@media (max-width: 1000px) {
-  .task-table thead {
+@media (max-width: 1200px) {
+  .item-table thead {
     display: none;
   }
 
-  .task-table,
-  .task-table tbody,
-  .task-table tr,
-  .task-table td {
+  .item-table,
+  .item-table tbody,
+  .item-table tr,
+  .item-table td {
     display: block;
     width: 100%;
   }
 
-  .task-table tr {
+  .item-table tr {
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 6px 12px;
     margin-bottom: 12px;
   }
 
-  .task-table td {
+  .item-table td {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
     border-bottom: 1px dashed var(--border);
     padding: 9px 0;
+    text-align: right;
   }
 
-  .task-table td:last-child {
+  .item-table td:last-child {
     border-bottom: none;
   }
 
-  .task-table td::before {
+  .item-table td::before {
     content: attr(data-label);
     color: var(--muted);
     font-size: 0.8rem;
     flex: none;
+    text-align: left;
   }
 
-  .task-desc {
-    white-space: normal;
+  .stock-cell {
+    justify-items: end;
+    min-width: 140px;
+  }
+
+  .stock-bar {
+    width: 100%;
   }
 
   .actions-cell {
-    width: 100%;
     justify-content: flex-end;
+    flex-wrap: wrap;
   }
 }
 
@@ -783,6 +867,18 @@ textarea:focus-visible {
 
   .kpi-grid {
     gap: 10px;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .filter-inputs {
+    width: 100%;
+  }
+
+  .filter-inputs > * {
+    flex: 1;
   }
 
   .form-row {
