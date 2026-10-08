@@ -1,0 +1,57 @@
+# Helm chart verification on a LOCAL throwaway cluster (single-node k3s v1.34 running in a Docker container)
+#
+# IMPORTANT: this is NOT the EKS deployment. It shows that the chart works on a real Kubernetes API
+# (probes, PVC, Ingress, HPA, helm test). The EKS / AWS-console screenshots for grading still have to be
+# produced by running terraform apply and the Helm deployment against your own AWS account.
+#
+# Install used:  helm upgrade --install stockpilot helm/stockpilot -n stockpilot \
+#                  -f helm/stockpilot/values-dev.yaml --set ingress.className=traefik \
+#                  --set backend.image.repository=devops-assgn-backend ...  (locally built images)
+
+# (output snapshots below were taken during testing; the final release revision was 3, after the fixes listed at the bottom)
+
+$ helm list -n stockpilot
+NAME      	NAMESPACE 	REVISION	STATUS  	CHART           	APP VERSION
+stockpilot	stockpilot	2       	deployed	stockpilot-1.0.0	1.0.0
+
+$ kubectl get pods -n stockpilot
+NAME                                   READY   STATUS    RESTARTS   AGE
+stockpilot-backend-667b95c4cd-8bjnt    1/1     Running   0          12s
+stockpilot-backend-667b95c4cd-wq2cf    1/1     Running   0          22s
+stockpilot-frontend-586df9cf85-cvs6t   1/1     Running   0          4m48s
+stockpilot-frontend-586df9cf85-v45h8   1/1     Running   0          4m48s
+stockpilot-postgres-0                  1/1     Running   0          4m48s
+
+$ kubectl get svc -n stockpilot
+NAME                  TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+stockpilot-backend    ClusterIP   10.43.191.58   <none>        8000/TCP   4m56s
+stockpilot-frontend   ClusterIP   10.43.217.49   <none>        80/TCP     4m56s
+stockpilot-postgres   ClusterIP   None           <none>        5432/TCP   4m56s
+
+$ kubectl get ingress -n stockpilot
+NAME         CLASS     HOSTS              ADDRESS      PORTS   AGE
+stockpilot   traefik   stockpilot.local   172.17.0.2   80      4m57s
+
+$ kubectl get pvc -n stockpilot
+NAME                         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS
+data-stockpilot-postgres-0   Bound    pvc-05604e91-c23f-4305-8009-b871f43405a8   1Gi        RWO            local-path
+
+# through the Ingress (Host: stockpilot.local):
+GET /                -> 200 (React app)
+GET /api/items/stats -> {"total_items":10,"total_units":1175,"total_value":8020.3,"low_stock":3,"out_of_stock":2,"categories":4}
+
+$ helm test stockpilot -n stockpilot      # backend /ready, backend API, and the frontend's /api proxy
+Phase:          Succeeded
+
+# HPA under load (scripts/load-test.sh stockpilot 30 120), backend replicas 2 -> 6
+stockpilot-backend   Deployment/stockpilot-backend   cpu: 164%/50%   2     6     6
+
+# Problems this testing found and that are fixed in the chart:
+#  - the wait-for-db init container looped forever: pg_isready needs -U when the uid has no passwd entry
+#  - the frontend's /api proxy failed ("unexpected DNS response"): nginx ignores DNS search domains,
+#    so BACKEND_URL now uses the fully qualified service name
+#  - two backend replicas starting together raced on "alembic upgrade head": fixed with a Postgres advisory lock
+
+# Troubleshooting labs (troubleshooting/*.yaml) were also run and the documented fixes confirmed:
+#  broken-image   -> ErrImagePull, fixed with kubectl set image
+#  broken-service -> endpoints <none>, fixed by correcting the selector (endpoints 10.42.0.36:8080)

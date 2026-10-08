@@ -1,0 +1,12 @@
+# Trivy scan of the locally built images
+# Settings: --severity HIGH,CRITICAL --ignore-unfixed   (the same gate the CI pipeline uses)
+# Run at 2026-10-08 17:59 UTC with aquasec/trivy:latest
+
+== stockpilot-backend  (base OS: debian 13.7)
+   os-pkgs  debian       HIGH/CRITICAL with a fix available: 0
+   lang-pkgs python-pkg   HIGH/CRITICAL with a fix available: 0
+   RESULT: PASS - clean (0 findings)
+
+== stockpilot-frontend  (base OS: alpine 3.24.2)
+   os-pkgs  alpine       HIGH/CRITICAL with a fix available: 0
+   RESULT: PASS - clean (0 findings)

@@ -1,0 +1,31 @@
+# docker compose smoke test - 2026-10-08 17:59 UTC
+
+$ docker compose ps
+SERVICE    STATUS                   PORTS
+backend    Up 6 minutes (healthy)   0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+db         Up 6 minutes (healthy)   5432/tcp
+frontend   Up 6 minutes (healthy)   0.0.0.0:3000->8080/tcp, [::]:3000->8080/tcp
+
+$ curl localhost:8000/health
+{"status":"OK"}
+$ curl localhost:8000/ready
+{"status":"READY"}
+
+$ curl localhost:3000/api/items/stats   (browser -> nginx -> backend -> postgres)
+{"total_items":10,"total_units":1200,"total_value":8126.55,"low_stock":3,"out_of_stock":2,"categories":4}
+
+$ curl localhost:8000/metrics | grep http_requests_total
+http_requests_total{handler="/api/items/stats",method="GET",status="2xx"} 122.0
+http_requests_total{handler="/api/items",method="GET",status="2xx"} 180.0
+http_requests_total{handler="/api/movements",method="GET",status="2xx"} 120.0
+http_requests_total{handler="/api/items/{item_id}",method="GET",status="4xx"} 120.0
+
+$ docker compose exec db psql -U stockpilot -c 'select count(*) from items; select version_num from alembic_version;'
+items: 10
+stock_movements: 15
+alembic revision: 0003
+
+$ docker compose exec backend id   (non-root)
+uid=10001(appuser) gid=10001(appuser) groups=10001(appuser)
+$ docker compose exec frontend id  (non-root)
+uid=101(nginx) gid=101(nginx) groups=101(nginx)
