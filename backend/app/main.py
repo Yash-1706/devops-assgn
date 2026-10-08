@@ -5,20 +5,21 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.routers import tasks
+from app.routers import items, movements
 
 app = FastAPI(
-    title="TaskBoard API",
-    description="Small project-management API used for the DevOps capstone.",
+    title="StockPilot API",
+    description="Inventory management API used for the DevOps capstone.",
     version="1.0.0",
 )
 
-app.include_router(tasks.router)
+app.include_router(items.router)
+app.include_router(movements.router)
 
 
 @app.get("/", tags=["meta"])
 def root():
-    return {"service": "taskboard-backend", "docs": "/docs", "status": "running"}
+    return {"service": "stockpilot-backend", "docs": "/docs", "status": "running"}
 
 
 @app.get("/health", tags=["meta"])
