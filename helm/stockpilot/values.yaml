@@ -4,6 +4,9 @@
 nameOverride: ""
 fullnameOverride: ""
 
+# DNS suffix of the cluster; nginx needs fully qualified service names (it ignores search domains)
+clusterDomain: cluster.local
+
 # Needed when the GHCR packages are private:
 #   kubectl create secret docker-registry ghcr -n stockpilot --docker-server=ghcr.io ...
 imagePullSecrets: []

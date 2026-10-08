@@ -41,9 +41,10 @@ spec:
               containerPort: 8080
           env:
             # nginx proxies /api to this URL (the backend Service) when the page is opened
-            # without going through the Ingress
+            # without going through the Ingress. nginx does not use the pod's DNS search
+            # domains, so the name must be fully qualified.
             - name: BACKEND_URL
-              value: "http://{{ include "stockpilot.fullname" . }}-backend:{{ .Values.backend.service.port }}"
+              value: "http://{{ include "stockpilot.fullname" . }}-backend.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}"
           livenessProbe:
             httpGet:
               path: /healthz
