@@ -48,13 +48,24 @@ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:lates
 
 | Layer | What is in place |
 |-------|------------------|
-| Source / secrets | `.gitignore` excludes `.env`, `terraform.tfvars` and state; no credentials in the repository; CI uses `GITHUB_TOKEN` and encrypted repository secrets |
+| Source / secrets | `.gitignore` excludes `.env`, `terraform.tfvars` and state. No passwords or credentialed connection strings are stored in the repository: the backend requires `DATABASE_URL` from the environment, Docker Compose uses a private-network database without a password, and the Helm chart generates a random database password. CI uses `GITHUB_TOKEN` and encrypted repository secrets, and a gitleaks job scans the whole history on every push |
 | Dependencies | all backend dependencies pinned to exact versions; `npm ci` with a lockfile |
 | Container scanning | Trivy gate in CI (above) |
 | Container hardening | non-root users (uid 10001 / 101), `HEALTHCHECK`, multi-stage frontend image with no build tools at runtime |
 | Kubernetes | `runAsNonRoot`, `allowPrivilegeEscalation: false`, all capabilities dropped, `seccompProfile: RuntimeDefault`, read-only root filesystem for the backend, resource limits, Pod Security Admission labels on the namespace, `ClusterIP` Services (nothing but the Ingress is exposed) |
 | Runtime | readiness/liveness probes, Prometheus metrics |
 
-Not covered (out of scope for the capstone): SAST of the source code, a secrets scanner in CI, network policies,
-image signing, and a managed secret store (the demo database password is a Helm value; override it with
-`--set-string postgres.password=...`, which CI does from a repository secret).
+Not covered (out of scope for the capstone): SAST of the source code, network policies, image signing, and a managed
+secret store such as AWS Secrets Manager (the generated database password lives in a Kubernetes Secret).
+
+## Secret scanning
+
+An early version of this repository contained a local-development database login (user and password both
+`stockpilot`) in the compose file, the backend config and the Helm values. Secret scanners such as GitGuardian flag
+that pattern (a password inside a connection URI). They were placeholders, not real credentials, but they were removed
+anyway: the current tree has no password literals or credentialed URIs, and the `secret-scan` job (gitleaks) fails the
+pipeline if a real secret is ever committed. Run it locally with:
+
+```bash
+docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.30.1 git /repo --no-banner --redact
+```

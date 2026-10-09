@@ -91,16 +91,25 @@ docker compose up --build
 On the first start the backend container runs the Alembic migrations (which also load a few demo
 items). Stop with `docker compose down`; add `-v` to delete the database volume as well.
 
+No password is stored in the repository: the compose database is only reachable on the private compose network
+(its port is not published), so it uses `trust` authentication. If you ran an older version of this stack that
+created a database volume with a password, run `docker compose down -v` once before starting again.
+
 ### Backend only
 
-Requirements: Python 3.12+ and a PostgreSQL database.
+Requirements: Python 3.12+ and a PostgreSQL database. A throwaway one without any password:
+
+```bash
+docker run -d --name stockpilot-pg -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust \
+  -e POSTGRES_DB=stockpilot postgres:16-alpine
+```
 
 ```bash
 cd backend
 python -m venv .venv
 source .venv/bin/activate            # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
-export DATABASE_URL='postgresql+psycopg://stockpilot:stockpilot@localhost:5432/stockpilot'
+export DATABASE_URL='postgresql+psycopg://postgres@localhost:5432/stockpilot'   # required, there is no default
 alembic upgrade head
 uvicorn app.main:app --reload --port 8000
 ```
@@ -170,8 +179,8 @@ docker build -t stockpilot-frontend:local ./frontend
 `.github/workflows/ci-cd.yml` runs on every push and pull request to `main`:
 
 ```text
-test  (pytest + frontend build)        validate-infra (helm lint/template, terraform fmt/validate)
-      \                                  /
+test (pytest + frontend build)   validate-infra (helm, terraform)   secret-scan (gitleaks, full history)
+      \                                |                                 /
        build-scan-push  (backend, frontend in parallel)
           1. docker build
           2. Trivy scan  -> fails the job on HIGH/CRITICAL
@@ -180,7 +189,7 @@ test  (pytest + frontend build)        validate-infra (helm lint/template, terra
               deploy (helm upgrade --install on EKS; optional)
 ```
 
-- **Quality gates:** a failing test stops the pipeline before any image is built; a vulnerable image is never pushed.
+- **Quality gates:** a failing test, a committed secret or a broken chart stops the pipeline before any image is built; a vulnerable image is never pushed.
 - **Tags are the commit SHA**, never `latest`: commit A produces image A, so what runs in the cluster is traceable to source.
 - **Pushing needs no secrets:** the workflow uses the built-in `GITHUB_TOKEN`.
 - **Package visibility:** GHCR packages start out private. For the cluster to pull them, either make both
@@ -196,7 +205,7 @@ The `deploy` job is skipped until you opt in. Add in *Settings > Secrets and var
 | Variable | `DEPLOY_ENABLED` | `true` |
 | Variable | `AWS_REGION`, `EKS_CLUSTER_NAME` | `ap-south-1`, `stockpilot-eks` |
 | Secret | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | an IAM user allowed to call `eks:DescribeCluster` and mapped in the cluster |
-| Secret | `DB_PASSWORD` | PostgreSQL password for the release (optional) |
+| Secret | `DB_PASSWORD` | PostgreSQL password for the release (optional; if unset the chart generates one) |
 
 Never commit credentials; they only ever live in GitHub secrets.
 
@@ -252,7 +261,7 @@ What the chart contains (`helm/stockpilot/templates/`):
 | `backend-deployment`, `frontend-deployment` | 2 replicas each, probes, resource requests/limits, non-root, read-only root filesystem (backend), anti-affinity |
 | `backend-service`, `frontend-service` | `ClusterIP` Services (a Service finds pods by label: no matching labels, no endpoints) |
 | `postgres` | StatefulSet with a PersistentVolumeClaim and a headless Service. For production prefer Amazon RDS |
-| `secret` | database credentials, wired into the backend as `DATABASE_URL` |
+| `secret` | database credentials (a random password is generated on first install and kept on upgrades), wired into the backend as `DATABASE_URL` |
 | `ingress` | `/` to the frontend; `/api`, `/docs` and `/openapi.json` to the backend |
 | `hpa` | scales the backend from 2 to 6 pods at 50% CPU |
 | `servicemonitor` | tells Prometheus to scrape `/metrics` |
