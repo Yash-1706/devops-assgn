@@ -1,13 +1,17 @@
 # Full local stack:  docker compose up --build
 #   frontend  http://localhost:3000
 #   backend   http://localhost:8000/docs
+#
+# No password is stored in this repository. The database is only reachable on the private
+# compose network (its port is not published to your machine), so "trust" authentication
+# is fine for this local stack. Kubernetes uses a generated password instead (see helm/).
 services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-stockpilot}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stockpilot}
-      POSTGRES_DB: ${POSTGRES_DB:-stockpilot}
+      POSTGRES_USER: stockpilot
+      POSTGRES_DB: stockpilot
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -20,7 +24,7 @@ services:
   backend:
     build: ./backend
     environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-stockpilot}:${POSTGRES_PASSWORD:-stockpilot}@db:5432/${POSTGRES_DB:-stockpilot}
+      DATABASE_URL: postgresql+psycopg://stockpilot@db:5432/stockpilot
     ports:
       - "8000:8000"
     depends_on:
