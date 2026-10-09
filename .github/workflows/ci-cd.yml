@@ -52,6 +52,23 @@ jobs:
           npm run build
 
   # ------------------------------------------------------------------
+  # Secret scanning: fails if a password, token or key was committed
+  # (anywhere in the history, not only in the latest commit).
+  # ------------------------------------------------------------------
+  secret-scan:
+    name: Scan for committed secrets (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks over the full git history
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/repo" \
+            zricethezav/gitleaks:v8.30.1 git /repo --no-banner --redact --verbose
+
+  # ------------------------------------------------------------------
   # Infrastructure code is checked on every push too: a broken chart or
   # Terraform file is caught here, not during a deployment.
   # ------------------------------------------------------------------
@@ -85,7 +102,7 @@ jobs:
   # ------------------------------------------------------------------
   build-scan-push:
     name: Build, scan and push (${{ matrix.service }})
-    needs: [test, validate-infra]
+    needs: [test, validate-infra, secret-scan]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -165,15 +182,22 @@ jobs:
         run: aws eks update-kubeconfig --name "${{ vars.EKS_CLUSTER_NAME || 'stockpilot-eks' }}" --region "${{ vars.AWS_REGION || 'ap-south-1' }}"
 
       - name: helm upgrade --install
+        env:
+          # optional: when the secret is not set, the chart generates and keeps its own password
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           OWNER="${GITHUB_REPOSITORY_OWNER,,}"
+          EXTRA_ARGS=()
+          if [ -n "$DB_PASSWORD" ]; then
+            EXTRA_ARGS+=(--set-string "postgres.password=$DB_PASSWORD")
+          fi
           helm upgrade --install stockpilot ./helm/stockpilot \
             --namespace stockpilot --create-namespace \
             --set backend.image.repository="ghcr.io/${OWNER}/stockpilot-backend" \
             --set backend.image.tag="${{ github.sha }}" \
             --set frontend.image.repository="ghcr.io/${OWNER}/stockpilot-frontend" \
             --set frontend.image.tag="${{ github.sha }}" \
-            --set-string postgres.password="${{ secrets.DB_PASSWORD || 'stockpilot' }}" \
+            "${EXTRA_ARGS[@]}" \
             --wait --timeout 5m
 
       - name: Show what is running
