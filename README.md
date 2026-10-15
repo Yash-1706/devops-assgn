@@ -147,7 +147,7 @@ cd backend
 pytest -v
 ```
 
-46 tests cover health/readiness/metrics, item CRUD, validation, filters, statistics, stock
+48 tests cover health/readiness/metrics, item CRUD, validation, filters, statistics, stock
 adjustments and the ledger. They run against an in-memory SQLite database (`tests/conftest.py`
 overrides the database dependency), so they never touch a real database and need no services.
 `pytest.ini` sets the test path and import root.

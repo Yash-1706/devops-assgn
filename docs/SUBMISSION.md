@@ -9,7 +9,7 @@ that only you can take.
 | Module | Pts | Status | Where / how |
 |--------|----:|--------|-------------|
 | M1 Application | 10 | Done + screenshot | `backend/app`, `backend/alembic/versions` (3 migrations), `frontend/src`, `docker-compose.yml`. **You:** screenshot of http://localhost:3000 |
-| M2 Testing | 10 | Done + screenshot | `backend/tests` (46 tests, SQLite test DB), `backend/pytest.ini`, `tests/conftest.py`. **You:** screenshot of `pytest -v` ([output](evidence/pytest-output.txt)) |
+| M2 Testing | 10 | Done + screenshot | `backend/tests` (48 tests, SQLite test DB), `backend/pytest.ini`, `tests/conftest.py`. **You:** screenshot of `pytest -v` ([output](evidence/pytest-output.txt)) |
 | M3 Git/GitHub | 5 | Done | public repo, more than 50 small commits (the rubric asks for 10), `.gitignore` excludes `.env`, `__pycache__`, `node_modules`, `.venv`. **You:** screenshot of the commit history |
 | M4 Docker | 10 | Done + screenshots | both Dockerfiles (frontend is multi-stage), non-root users, 3-service compose. **You:** screenshots of `docker compose up --build` and the app ([evidence](evidence/compose-smoke-test.txt)) |
 | M5 CI/CD | 15 | Done + GHCR screenshot | `.github/workflows/ci-cd.yml`: triggers on push to `main`, pytest gates the build, frontend build, both images built, pushed to GHCR, tagged with the commit SHA (no `latest`). **You:** Actions run URL (Actions tab, a green run) and a screenshot of the GHCR packages page |
@@ -21,7 +21,7 @@ that only you can take.
 
 ## What was verified, and what was not
 
-Verified on this machine: the 46 tests, all migrations (SQLite and PostgreSQL), concurrent migrations, the Compose stack
+Verified on this machine: the 48 tests, all migrations (SQLite and PostgreSQL), concurrent migrations, the Compose stack
 end to end, both images against Trivy (clean), the GitHub Actions run (green: tests, builds, Trivy, GHCR push),
 `actionlint`, `terraform fmt/init/validate`, `helm lint/template`, and a real installation of the Helm chart on a local
 Kubernetes cluster (pods, PVC, Ingress, HPA scaling 2 to 6, `helm test`, both troubleshooting labs). The Grafana dashboard
